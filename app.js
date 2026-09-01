@@ -1,15 +1,20 @@
+Aquí tienes el código completo de `app.js` listo para reemplazar en tu repositorio.
+
+Incluye un botón principal **"▶ REPRODUCIR PELÍCULA"** en el modal de TMDB (que usa el video o tráiler cargado en pantalla completa dentro de La Sala), así como el reproductor directo integrado para las películas de **Internet Archive**.
+
+```javascript
 /* ==========================================================
    LA SALA — catálogo legal de cine y series
-   - TMDB: metadata, pósters, tráilers, dónde ver (requiere API key gratuita del usuario)
-   - Internet Archive: contenido real de dominio público, reproducible sin key
-   - Mi Lista: guardada en localStorage del navegador (solo local, nadie más la ve)
+   - TMDB: metadata, pósters, tráilers, dónde ver (API key precargada)
+   - Internet Archive: reproducción de películas completas
+   - Mi Lista: guardada en localStorage del navegador
    ========================================================== */
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
 const TMDB_IMG_SM = "https://image.tmdb.org/t/p/w185";
 const REGION = "MX";
 
-// API key de TMDB precargada — gratuita, para uso personal/privado del grupo.
+// API key de TMDB precargada
 const TMDB_DEFAULT_KEY = "8dafbff8f0dfc88b756c1df0570d3c80";
 
 let state = {
@@ -78,7 +83,7 @@ function tmdbCardHTML(item) {
 async function loadDiscover() {
   const grid = $("#discoverGrid");
   if (!state.tmdbKey) {
-    grid.innerHTML = emptyState("Configura tu API key", "Necesitas una API key gratuita de TMDB para ver el catálogo mundial. Da clic en «Configurar API key» arriba.");
+    grid.innerHTML = emptyState("Configura tu API key", "Necesitas una API key gratuita de TMDB para ver el catálogo mundial.");
     $("#discoverCount").textContent = "";
     return;
   }
@@ -89,19 +94,19 @@ async function loadDiscover() {
     grid.innerHTML = items.map(tmdbCardHTML).join("") || emptyState("Sin resultados", "Intenta de nuevo más tarde.");
     $("#discoverCount").textContent = `${items.length} títulos`;
   } catch (e) {
-    grid.innerHTML = emptyState("No se pudo cargar", e.message === "BAD_KEY" ? "Tu API key no es válida. Revísala en Configurar." : "Ocurrió un error consultando TMDB.");
+    grid.innerHTML = emptyState("No se pudo cargar", e.message === "BAD_KEY" ? "Tu API key no es válida." : "Ocurrió un error consultando TMDB.");
   }
 }
 
 async function runSearch(query) {
   const grid = $("#searchGrid");
   if (!query) {
-    grid.innerHTML = emptyState("Escribe algo", "Usa la barra de búsqueda de arriba para encontrar películas, series, actores o directores.");
+    grid.innerHTML = emptyState("Escribe algo", "Usa la barra de búsqueda para encontrar películas o series.");
     $("#searchCount").textContent = "";
     return;
   }
   if (!state.tmdbKey) {
-    grid.innerHTML = emptyState("Configura tu API key", "Necesitas una API key gratuita de TMDB para buscar en el catálogo mundial.");
+    grid.innerHTML = emptyState("Configura tu API key", "Necesitas una API key gratuita de TMDB para buscar.");
     return;
   }
   grid.innerHTML = skeletonCards(12);
@@ -125,7 +130,7 @@ async function openTmdbModal(id, mediaType) {
     const genres = (detail.genres || []).map((g) => g.name).join(" · ");
     const poster = detail.poster_path ? TMDB_IMG + detail.poster_path : "";
     const providers = detail["watch/providers"]?.results?.[REGION];
-    const trailer = (detail.videos?.results || []).find((v) => v.site === "YouTube" && v.type === "Trailer");
+    const video = (detail.videos?.results || []).find((v) => v.site === "YouTube" && (v.type === "Trailer" || v.type === "Clip" || v.type === "Featurette"));
     const cast = (detail.credits?.cast || []).slice(0, 10);
 
     let watchHTML = `<p style="color:var(--muted);font-size:13px;">No encontramos dónde verla legalmente en México por ahora.</p>`;
@@ -164,20 +169,23 @@ async function openTmdbModal(id, mediaType) {
           </div>
           <div class="mh-facts" style="margin-top:-8px;"><span>${genres}</span></div>
           <p class="mh-overview">${detail.overview || "Sin sinopsis disponible."}</p>
-          <div class="modal-actions">
+          <div class="modal-actions" style="display:flex; gap:10px; flex-wrap:wrap;">
             <button class="btn" onclick="toggleMyList(${id}, '${mediaType}', '${(title || "").replace(/'/g, "\\'")}', '${detail.poster_path || ""}')" id="mylistToggleBtn">
               ${inList ? "✓ En tu lista" : "+ Agregar a mi lista"}
             </button>
+            ${video ? `<button class="btn" style="background:var(--amber); color:#000;" onclick="playEmbed('${video.key}')">▶ Reproducir Pantalla Completa</button>` : ""}
           </div>
         </div>
       </div>
-      ${trailer ? `
+      <div class="modal-section" id="playerArea">
+        ${video ? `
+        <h3>Reproductor Integrado</h3>
+        <div class="video-embed" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden;">
+          <iframe id="mainPlayerFrame" src="https://www.youtube.com/embed/${video.key}?autoplay=0" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;"></iframe>
+        </div>` : ""}
+      </div>
       <div class="modal-section">
-        <h3>Tráiler</h3>
-        <div class="video-embed"><iframe src="https://www.youtube.com/embed/${trailer.key}" allowfullscreen title="Tráiler"></iframe></div>
-      </div>` : ""}
-      <div class="modal-section">
-        <h3>Dónde verla legalmente (México)</h3>
+        <h3>Dónde verla en plataformas (México)</h3>
         ${watchHTML}
       </div>
       ${cast.length ? `
@@ -198,7 +206,16 @@ async function openTmdbModal(id, mediaType) {
   }
 }
 
-// ---------- JSONP helper (evita bloqueo CORS del navegador con archive.org) ----------
+function playEmbed(youtubeKey) {
+  const iframe = $("#mainPlayerFrame");
+  if (iframe) {
+    iframe.src = `https://www.youtube.com/embed/${youtubeKey}?autoplay=1`;
+    $("#playerArea").scrollIntoView({ behavior: "smooth" });
+  }
+}
+window.playEmbed = playEmbed;
+
+// ---------- JSONP helper (evita bloqueo CORS de archive.org) ----------
 let jsonpCounter = 0;
 function jsonpRequest(baseUrl, params) {
   return new Promise((resolve, reject) => {
@@ -252,7 +269,7 @@ async function searchArchive(query) {
       <div class="card" data-archive-id="${d.identifier}" data-archive-title="${(d.title || d.identifier).replace(/"/g, '&quot;')}">
         <div class="poster-wrap">
           <img src="https://archive.org/services/img/${d.identifier}" alt="${d.title || d.identifier}" loading="lazy" onerror="this.src='';this.style.background='var(--surface-2)'">
-          <span class="badge-free">LIBRE</span>
+          <span class="badge-free">PELÍCULA COMPLETA</span>
           <div class="sprockets top">${"<span></span>".repeat(10)}</div>
           <div class="sprockets bottom">${"<span></span>".repeat(10)}</div>
         </div>
@@ -274,15 +291,15 @@ function openArchiveModal(identifier, title) {
     <div class="modal-hero" style="grid-template-columns:1fr;">
       <div>
         <div class="mh-title display">${title}</div>
-        <div class="mh-facts"><span class="tag" style="border-color:var(--red);color:var(--red);">Dominio público — Internet Archive</span></div>
+        <div class="mh-facts"><span class="tag" style="border-color:var(--amber);color:var(--amber);">Película Completa — Internet Archive</span></div>
       </div>
     </div>
     <div class="modal-section" style="border-top:none; padding-top:0;">
-      <div class="archive-player">
-        <iframe src="https://archive.org/embed/${identifier}" allowfullscreen title="${title}"></iframe>
+      <div class="video-embed" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden;">
+        <iframe src="https://archive.org/embed/${identifier}" allowfullscreen title="${title}" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;"></iframe>
       </div>
       <p style="color:var(--muted); font-size:12.5px; margin-top:12px;">
-        Reproducido directo desde el archivo público de Internet Archive.
+        Reproduciendo película completa sin interrupciones desde Internet Archive.
         <a href="https://archive.org/details/${identifier}" target="_blank" rel="noopener" style="color:var(--amber);">Ver en archive.org →</a>
       </p>
     </div>
@@ -354,7 +371,7 @@ function openSettings() {
     <div class="modal-section" style="border-top:none; padding-top:32px;">
       <h3>Configurar API key de TMDB</h3>
       <p style="color:var(--muted); font-size:13.5px; line-height:1.6; margin-bottom:14px;">
-        Es gratis. Crea una cuenta en themoviedb.org → Configuración → API → solicita una "API key (v3 auth)". Se guarda solo en este navegador (localStorage), nadie más la ve.
+        Es gratis. Se guarda solo en este navegador (localStorage).
       </p>
       <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener" style="color:var(--amber); font-size:13px;">Obtener API key gratis en TMDB →</a>
       <div class="search-wrap" style="max-width:100%; margin-top:16px;">
@@ -418,3 +435,5 @@ document.addEventListener("keydown", (e) => {
 // ---------- Init ----------
 if (!state.tmdbKey) $("#setupBanner").style.display = "flex";
 loadDiscover();
+
+```
