@@ -198,25 +198,50 @@ async function openTmdbModal(id, mediaType) {
   }
 }
 
+// ---------- JSONP helper (evita bloqueo CORS del navegador con archive.org) ----------
+let jsonpCounter = 0;
+function jsonpRequest(baseUrl, params) {
+  return new Promise((resolve, reject) => {
+    const cbName = "iaCallback_" + Date.now() + "_" + (jsonpCounter++);
+    const url = new URL(baseUrl);
+    Object.entries(params).forEach(([k, v]) => {
+      if (Array.isArray(v)) v.forEach((val) => url.searchParams.append(k, val));
+      else url.searchParams.set(k, v);
+    });
+    url.searchParams.set("callback", cbName);
+    const script = document.createElement("script");
+    const cleanup = () => {
+      delete window[cbName];
+      script.remove();
+    };
+    window[cbName] = (data) => {
+      cleanup();
+      resolve(data);
+    };
+    script.onerror = () => {
+      cleanup();
+      reject(new Error("JSONP_ERROR"));
+    };
+    script.src = url.toString();
+    document.body.appendChild(script);
+  });
+}
+
 // ---------- Internet Archive ----------
 async function searchArchive(query) {
   const grid = $("#pdGrid");
   grid.innerHTML = skeletonCards(12);
   const q = query && query.trim()
-    ? `(${query}) AND mediatype:(movies) AND collection:(publicdomainmovies OR moviesandfilms OR feature_films OR classic_tv)`
-    : `mediatype:(movies) AND collection:(publicdomainmovies OR feature_films)`;
-  const url = new URL("https://archive.org/advancedsearch.php");
-  url.searchParams.set("q", q);
-  url.searchParams.set("fl[]", "identifier");
-  url.searchParams.set("fl[]", "title");
-  url.searchParams.set("fl[]", "year");
-  url.searchParams.set("fl[]", "description");
-  url.searchParams.set("rows", "24");
-  url.searchParams.set("output", "json");
-  url.searchParams.set("sort[]", "downloads desc");
+    ? `(${query}) AND mediatype:(movies) AND collection:(publicdomainmovies OR moviesandfilms OR feature_films OR classic_tv OR prelinger OR silentfilms)`
+    : `mediatype:(movies) AND collection:(publicdomainmovies OR moviesandfilms OR feature_films OR classic_tv OR prelinger OR silentfilms)`;
   try {
-    const res = await fetch(url);
-    const data = await res.json();
+    const data = await jsonpRequest("https://archive.org/advancedsearch.php", {
+      q,
+      "fl[]": ["identifier", "title", "year", "description"],
+      rows: "48",
+      output: "json",
+      "sort[]": "downloads desc",
+    });
     const docs = data.response?.docs || [];
     if (!docs.length) {
       grid.innerHTML = emptyState("Sin resultados", "Prueba con otro título, por ejemplo: Nosferatu, Metropolis, Night of the Living Dead.");
