@@ -1,122 +1,253 @@
-<!-- index.html - Estructura principal -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>La Sala - Cine y Series</title>
+    
+    <!-- Plyr.js CSS -->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        /* Estilos base modernos */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background: #0a0a0a; 
-            color: #fff;
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --accent: #e50914;
+            --accent-hover: #f40612;
         }
-        
-        /* Header estilo streaming */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* HEADER */
         .header {
-            background: linear-gradient(180deg, #1a1a1a 0%, transparent 100%);
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             position: fixed;
             top: 0;
             width: 100%;
-            z-index: 100;
+            padding: 15px 4%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 10%, transparent);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+            gap: 20px;
         }
-        
+
         .logo {
             font-size: 28px;
             font-weight: bold;
-            color: #e50914;
+            color: var(--accent);
             text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        
+
         .search-bar {
+            flex: 1;
+            max-width: 600px;
             display: flex;
             gap: 10px;
         }
-        
+
         .search-bar input {
+            flex: 1;
             padding: 10px 20px;
             border-radius: 25px;
-            border: none;
-            width: 300px;
-            background: rgba(255,255,255,0.1);
+            border: 1px solid #333;
+            background: rgba(0,0,0,0.7);
             color: #fff;
+            font-size: 14px;
+        }
+
+        .search-bar button {
+            padding: 10px 25px;
+            border-radius: 25px;
+            border: none;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .search-bar button:hover {
+            background: var(--accent-hover);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .header-actions button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .header-actions button:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* NAVEGACIÓN */
+        .nav-tabs {
+            margin-top: 80px;
+            padding: 0 4%;
+            display: flex;
+            gap: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .nav-tab {
+            padding: 15px 0;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
             font-size: 16px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
         }
-        
-        .search-bar input::placeholder {
-            color: #999;
+
+        .nav-tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--accent);
         }
-        
-        /* Grid de películas */
+
+        .nav-tab:hover {
+            color: var(--text-primary);
+        }
+
+        /* FILTROS */
+        .filters {
+            padding: 20px 4%;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            background: var(--bg-secondary);
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: var(--bg-primary);
+            color: #fff;
+            cursor: pointer;
+        }
+
+        /* CONTENIDO PRINCIPAL */
         .main-content {
-            padding-top: 100px;
-            padding-left: 40px;
-            padding-right: 40px;
+            padding: 30px 4%;
         }
-        
+
         .categoria-titulo {
             font-size: 24px;
-            margin: 30px 0 20px 0;
-            color: #fff;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        
+
         .peliculas-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 25px;
             margin-bottom: 40px;
         }
-        
+
         .pelicula-card {
-            cursor: pointer;
-            transition: transform 0.3s ease;
-            border-radius: 10px;
+            position: relative;
+            border-radius: 12px;
             overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            background: var(--bg-secondary);
         }
-        
+
         .pelicula-card:hover {
             transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(229, 9, 20, 0.3);
         }
-        
+
         .pelicula-card img {
             width: 100%;
-            height: 300px;
+            aspect-ratio: 2/3;
             object-fit: cover;
-            border-radius: 10px;
         }
-        
+
         .pelicula-card .info {
-            padding: 10px 0;
+            padding: 15px;
         }
-        
+
         .pelicula-card .titulo {
-            font-size: 16px;
             font-weight: 600;
-            margin-bottom: 5px;
-        }
-        
-        .pelicula-card .año {
-            color: #999;
             font-size: 14px;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        
+
+        .pelicula-card .meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
         .pelicula-card .calidad {
-            background: #e50914;
+            background: var(--accent);
             padding: 2px 8px;
             border-radius: 4px;
             font-size: 11px;
-            font-weight: bold;
-            display: inline-block;
-            margin-top: 5px;
         }
-        
-        /* Modal del reproductor */
+
+        .pelicula-card .favorite-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            border: none;
+            color: #fff;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .pelicula-card:hover .favorite-btn {
+            opacity: 1;
+        }
+
+        .pelicula-card .favorite-btn.active {
+            color: var(--accent);
+        }
+
+        /* MODAL */
         .modal {
             display: none;
             position: fixed;
@@ -124,43 +255,48 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 1000;
+            background: rgba(0,0,0,0.95);
+            z-index: 2000;
+            overflow-y: auto;
         }
-        
+
         .modal.active {
-            display: block;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
         }
-        
+
         .modal-content {
-            position: relative;
-            width: 90%;
-            max-width: 1200px;
-            margin: 40px auto;
-            background: #1a1a1a;
-            border-radius: 15px;
+            width: 100%;
+            max-width: 1000px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
             overflow: hidden;
+            position: relative;
         }
-        
+
         .modal-close {
             position: absolute;
-            right: 20px;
-            top: 20px;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.7);
+            border: none;
             color: #fff;
-            font-size: 30px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             cursor: pointer;
             z-index: 10;
-            background: none;
-            border: none;
+            font-size: 20px;
         }
-        
+
         .player-wrapper {
             position: relative;
-            padding-bottom: 56.25%; /* 16:9 */
-            height: 0;
-            overflow: hidden;
+            padding-bottom: 56.25%;
+            background: #000;
         }
-        
+
         .player-wrapper iframe,
         .player-wrapper video {
             position: absolute;
@@ -169,97 +305,254 @@
             width: 100%;
             height: 100%;
         }
-        
+
         .modal-info {
             padding: 30px;
         }
-        
+
         .modal-info h2 {
-            font-size: 28px;
+            font-size: 32px;
             margin-bottom: 10px;
         }
-        
+
         .modal-info .meta {
-            color: #999;
-            margin-bottom: 15px;
+            display: flex;
+            gap: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
-        
+
         .modal-info .sinopsis {
+            font-size: 16px;
             line-height: 1.6;
-            color: #ddd;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
         }
-        
-        /* Responsive */
+
+        .modal-info .actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .modal-info .actions button {
+            padding: 12px 30px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .source-selector {
+            margin-bottom: 20px;
+        }
+
+        .source-selector label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .source-selector select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: var(--bg-primary);
+            color: #fff;
+            font-size: 14px;
+        }
+
+        /* LOADING */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px;
+        }
+
+        .loading::after {
+            content: '';
+            width: 40px;
+            height: 40px;
+            border: 4px solid #333;
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* RESPONSIVE */
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
-                gap: 15px;
                 padding: 15px;
             }
-            
-            .search-bar input {
+
+            .search-bar {
                 width: 100%;
+                max-width: none;
             }
-            
+
+            .nav-tabs {
+                margin-top: 140px;
+            }
+
             .peliculas-grid {
                 grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
                 gap: 15px;
             }
-            
-            .modal-content {
-                width: 95%;
-                margin: 20px auto;
+
+            .modal-info h2 {
+                font-size: 24px;
             }
+        }
+
+        /* TEMA CLARO */
+        body.light-theme {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+        }
+
+        body.light-theme .header {
+            background: linear-gradient(to bottom, rgba(255,255,255,0.9) 10%, transparent);
+        }
+
+        body.light-theme .search-bar input {
+            background: rgba(255,255,255,0.9);
+            color: #333;
+        }
+
+        /* SECCIÓN DOMINIO PÚBLICO */
+        .dominio-publico-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
+    <!-- HEADER -->
     <header class="header">
-        <a href="#" class="logo">🎬 La Sala</a>
+        <a href="#" class="logo" onclick="mostrarCatalogo(); return false;">🎬 La Sala</a>
+        
         <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Buscar películas, series...">
-            <button onclick="buscarContenido()" style="padding: 10px 20px; border-radius: 25px; border: none; background: #e50914; color: #fff; cursor: pointer;">Buscar</button>
-        </div>
-        <div>
-            <button onclick="cambiarTema()" style="background: none; border: none; color: #fff; font-size: 20px; cursor: pointer;">🌙</button>
-        </div>
-    </header>
-    
-    <!-- Contenido Principal -->
-    <main class="main-content">
-        <h2 class="categoria-titulo">🔥 Películas Destacadas</h2>
-        <div class="peliculas-grid" id="peliculasGrid">
-            <!-- Se genera con JavaScript -->
+            <input type="text" id="searchInput" placeholder="Buscar películas, series, actores...">
+            <button onclick="buscarContenido()"><i class="fas fa-search"></i></button>
         </div>
         
-        <h2 class="categoria-titulo">📺 Series Populares</h2>
-        <div class="peliculas-grid" id="seriesGrid">
-            <!-- Se genera con JavaScript -->
+        <div class="header-actions">
+            <button onclick="toggleTema()" title="Cambiar tema">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+            <button onclick="mostrarMiLista()" title="Mi Lista">
+                <i class="fas fa-heart"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- NAVEGACIÓN -->
+    <nav class="nav-tabs">
+        <button class="nav-tab active" onclick="cambiarCategoria('populares', this)">🔥 Populares</button>
+        <button class="nav-tab" onclick="cambiarCategoria('dominio-publico', this)">📚 Dominio Público</button>
+        <button class="nav-tab" onclick="cambiarCategoria('mejor-votadas', this)">⭐ Mejor Valoradas</button>
+        <button class="nav-tab" onclick="cambiarCategoria('estrenos', this)">🎬 Estrenos</button>
+    </nav>
+
+    <!-- FILTROS -->
+    <div class="filters" id="filtersContainer" style="display: none;">
+        <select class="filter-select" id="genreFilter" onchange="aplicarFiltros()">
+            <option value="">Todos los géneros</option>
+        </select>
+        <select class="filter-select" id="yearFilter" onchange="aplicarFiltros()">
+            <option value="">Todos los años</option>
+        </select>
+        <select class="filter-select" id="ratingFilter" onchange="aplicarFiltros()">
+            <option value="">Cualquier calificación</option>
+            <option value="8">8+ Excelente</option>
+            <option value="7">7+ Muy bueno</option>
+            <option value="6">6+ Bueno</option>
+        </select>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main-content">
+        <h2 class="categoria-titulo" id="mainTitle">🔥 Películas Destacadas</h2>
+        <div class="peliculas-grid" id="contentGrid">
+            <div class="loading"></div>
         </div>
     </main>
-    
-    <!-- Modal del Reproductor -->
+
+    <!-- MODAL REPRODUCTOR -->
     <div class="modal" id="playerModal">
         <div class="modal-content">
-            <button class="modal-close" onclick="cerrarReproductor()">✕</button>
-            <div class="player-wrapper" id="player-container">
+            <button class="modal-close" onclick="cerrarReproductor()">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="player-wrapper" id="playerContainer">
                 <!-- El reproductor se inyecta aquí -->
             </div>
+            
             <div class="modal-info">
-                <h2 id="info-titulo">Título</h2>
+                <h2 id="infoTitulo">Título</h2>
                 <div class="meta">
-                    <span id="info-año">2024</span> • 
-                    <span id="info-generos">Drama</span> • 
-                    <span id="info-calidad">HD</span>
+                    <span id="infoAño">2024</span>
+                    <span>•</span>
+                    <span id="infoGeneros">Drama</span>
+                    <span>•</span>
+                    <span id="infoCalidad">HD</span>
+                    <span>•</span>
+                    <span id="infoRating">⭐ 8.0</span>
                 </div>
-                <p class="sinopsis" id="info-sinopsis">Sinopsis...</p>
+                
+                <div class="actions">
+                    <button class="btn-primary" onclick="toggleFavorite()">
+                        <i class="fas fa-heart" id="favIcon"></i> Agregar a Mi Lista
+                    </button>
+                    <button class="btn-secondary" onclick="compartirPelicula()">
+                        <i class="fas fa-share-alt"></i> Compartir
+                    </button>
+                </div>
+                
+                <p class="sinopsis" id="infoSinopsis">Sinopsis...</p>
+                
+                <div class="source-selector" id="sourceSelector" style="display: none;">
+                    <label><i class="fas fa-server"></i> Seleccionar Servidor:</label>
+                    <select id="serverSelect" onchange="cambiarServidor(this.value)">
+                        <!-- Opciones se generan dinámicamente -->
+                    </select>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Plyr.js -->
+    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
     
-    <script src="catalogo.js"></script>
-    <script src="reproductor.js"></script>
+    <!-- Nuestro App -->
     <script src="app.js"></script>
 </body>
 </html>
