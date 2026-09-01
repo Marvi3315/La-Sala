@@ -249,18 +249,18 @@ function crearCard(item) {
     const esFavorito = estadoActual.miLista.some(m => m.id === item.id);
     
     card.innerHTML = `
-        <img src="${poster}" alt="${title}" loading="lazy">
-        <button class="favorite-btn ${esFavorito ? 'active' : ''}" onclick="toggleFavoriteFromCard(event, ${item.id}, '${item.media_type || 'movie}')">
-            <i class="fas fa-heart"></i>
-        </button>
-        <div class="info">
-            <div class="titulo">${title}</div>
-            <div class="meta">
-                <span>${year}</span>
-                <span class="calidad">⭐ ${rating}</span>
-            </div>
+    <img src="${poster}" alt="${title}" loading="lazy">
+    <button class="favorite-btn ${esFavorito ? 'active' : ''}" onclick="toggleFavoriteFromCard(event, ${item.id}, '${item.media_type || 'movie'}')">
+        <i class="fas fa-heart"></i>
+    </button>
+    <div class="info">
+        <div class="titulo">${title}</div>
+        <div class="meta">
+            <span>${year}</span>
+            <span class="calidad">⭐ ${rating}</span>
         </div>
-    `;
+    </div>
+`;
     
     card.onclick = (e) => {
         if (!e.target.closest('.favorite-btn')) {
